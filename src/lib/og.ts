@@ -47,6 +47,16 @@ export function getSoulSiteUrl() {
 }
 
 export function getApiBase() {
+  // In self-hosted mode, use local API
+  const isSelfHosted = !import.meta.env.VITE_CONVEX_URL || import.meta.env.VITE_SELFHOST_MODE === 'true'
+  if (isSelfHosted) {
+    // When running in browser on dev server (port 5173), API is on port 3000
+    if (typeof window !== 'undefined' && window.location.port === '5173') {
+      return 'http://127.0.0.1:3000'
+    }
+    return 'http://localhost:3000'
+  }
+  
   const explicit = import.meta.env.VITE_CONVEX_SITE_URL?.trim()
   return explicit || getSiteUrl()
 }

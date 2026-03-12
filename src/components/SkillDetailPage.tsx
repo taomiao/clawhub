@@ -18,6 +18,9 @@ import {
   formatOsList,
   stripFrontmatter,
 } from './skillDetailUtils'
+import { SelfHostSkillDetail } from './SelfHostSkillDetail'
+
+const isSelfHosted = !import.meta.env.VITE_CONVEX_URL || import.meta.env.VITE_SELFHOST_MODE === 'true'
 
 type SkillDetailPageProps = {
   slug: string
@@ -78,6 +81,11 @@ export function SkillDetailPage({
   canonicalOwner,
   redirectToCanonical,
 }: SkillDetailPageProps) {
+  // In self-hosted mode, use simplified detail page
+  if (isSelfHosted) {
+    return <SelfHostSkillDetail slug={slug} />
+  }
+
   const navigate = useNavigate()
   const { isAuthenticated, me } = useAuthStatus()
 

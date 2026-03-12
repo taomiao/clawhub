@@ -354,4 +354,5 @@ export const ClawdisSkillMetadataSchema = type({
 });
 // If this line errors, ClawdisSkillMetadata is out of sync with ClawdisSkillMetadataSchema
 const _clawdisKeysCheck = true;
+void _clawdisKeysCheck;
 //# sourceMappingURL=schemas.js.map

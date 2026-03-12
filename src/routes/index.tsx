@@ -1,24 +1,24 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useAction, useQuery } from 'convex/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { api } from '../../convex/_generated/api'
-import { InstallSwitcher } from '../components/InstallSwitcher'
-import { SkillCard } from '../components/SkillCard'
-import { SkillStatsTripletLine } from '../components/SkillStats'
-import { SoulCard } from '../components/SoulCard'
-import { SoulStatsTripletLine } from '../components/SoulStats'
-import { UserBadge } from '../components/UserBadge'
-import { getSkillBadges } from '../lib/badges'
-import type { PublicSkill, PublicSoul, PublicUser } from '../lib/publicUser'
-import { getSiteMode } from '../lib/site'
+import { createFileRoute } from '@tanstack/react-router'
+import { SelfHostHome } from '../components/SelfHostHome'
+
+const isSelfHosted = !import.meta.env.VITE_CONVEX_URL || import.meta.env.VITE_SELFHOST_MODE === 'true'
 
 export const Route = createFileRoute('/')({
   component: Home,
 })
 
 function Home() {
-  const mode = getSiteMode()
-  return mode === 'souls' ? <OnlyCrabsHome /> : <SkillsHome />
+  if (isSelfHosted) {
+    return <SelfHostHome />
+  }
+
+  // In non-selfhosted mode, show a fallback (full Convex home would need separate file)
+  return (
+    <main style={{ padding: '40px 20px', maxWidth: 1200, margin: '0 auto' }}>
+      <h1>ClawHub</h1>
+      <p>Convex mode is not yet migrated. Use self-hosted mode (VITE_SELFHOST_MODE=true).</p>
+    </main>
+  )
 }
 
 function SkillsHome() {

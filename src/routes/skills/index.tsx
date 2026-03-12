@@ -7,6 +7,8 @@ import { SkillsResults } from './-SkillsResults'
 import { SkillsToolbar } from './-SkillsToolbar'
 import { useSkillsBrowseModel, type SkillsSearchState } from './-useSkillsBrowseModel'
 
+const isSelfHosted = !import.meta.env.VITE_CONVEX_URL || import.meta.env.VITE_SELFHOST_MODE === 'true'
+
 export const Route = createFileRoute('/skills/')({
   validateSearch: (search): SkillsSearchState => {
     return {
@@ -28,6 +30,11 @@ export const Route = createFileRoute('/skills/')({
     }
   },
   beforeLoad: ({ search }) => {
+    // In self-hosted mode, redirect to home page (which has the skill list)
+    if (isSelfHosted) {
+      throw redirect({ to: '/', replace: true })
+    }
+
     const hasQuery = Boolean(search.q?.trim())
     if (hasQuery || search.sort) return
     throw redirect({

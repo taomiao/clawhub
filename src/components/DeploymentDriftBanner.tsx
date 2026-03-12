@@ -3,6 +3,8 @@ import { Component, useEffect, type ReactNode } from 'react'
 import { api } from '../../convex/_generated/api'
 import { getDeploymentDriftInfo } from '../lib/deploymentDrift'
 
+const isSelfHosted = !import.meta.env.VITE_CONVEX_URL || import.meta.env.VITE_SELFHOST_MODE === 'true'
+
 const DEPLOYMENT_INFO_QUERY = {
   deploymentInfo: {
     query: api.appMeta.getDeploymentInfo,
@@ -47,6 +49,11 @@ class DeploymentDriftBannerBoundary extends Component<
 }
 
 function DeploymentDriftBannerContent() {
+  // Skip in self-hosted mode
+  if (isSelfHosted) {
+    return null
+  }
+
   const deploymentInfoResult = useQueries(DEPLOYMENT_INFO_QUERY).deploymentInfo
   const deploymentInfo = deploymentInfoResult instanceof Error ? null : deploymentInfoResult
   const drift = getDeploymentDriftInfo({

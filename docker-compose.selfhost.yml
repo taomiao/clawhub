@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: clawhub
+      POSTGRES_USER: clawhub
+      POSTGRES_PASSWORD: clawhub
+    ports:
+      - '5432:5432'
+    volumes:
+      - clawhub_db:/var/lib/postgresql/data
+      - ./selfhost/db/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U clawhub -d clawhub']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: selfhost/api/Dockerfile
+    working_dir: /app
+    command: ['bun', 'selfhost/api/src/index.ts']
+    environment:
+      HOST: '0.0.0.0'
+      PORT: '3000'
+      DATABASE_URL: postgres://clawhub:clawhub@db:5432/clawhub
+      STORAGE_DIR: /data/storage
+      # Set at least one token in DB via `bun run selfhost:seed`, then use it here for admin bootstrap operations.
+      # ADMIN_TOKEN: 'clh_...'
+      TRUST_FORWARDED_IPS: 'true'
+      # IMPORTANT: Don't set this to 0.0.0.0. Use your real IP or domain in production.
+      WELL_KNOWN_API_BASE: http://localhost:3000
+      # Tell frontend we're in self-hosted mode (no Convex)
+      VITE_SELFHOST_MODE: 'true'
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    volumes:
+      - clawhub_storage:/data/storage
+
+  # Optional: run frontend dev server separately (for development)
+  # Uncomment if you want hot-reload for frontend changes
+  web:
+    build:
+      context: .
+      dockerfile: selfhost/api/Dockerfile
+    working_dir: /app
+    command: ['bun', '--bun', 'vite', 'dev', '--host', '0.0.0.0', '--port', '5173']
+    environment:
+      VITE_SELFHOST_MODE: 'true'
+      VITE_CONVEX_URL: ''
+      PORT: '5173'
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+    depends_on:
+      - api
+
+volumes:
+  clawhub_db:
+  clawhub_storage:
+

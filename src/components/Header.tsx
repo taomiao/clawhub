@@ -17,9 +17,18 @@ import {
 } from './ui/dropdown-menu'
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group'
 
+const isSelfHosted = !import.meta.env.VITE_CONVEX_URL || import.meta.env.VITE_SELFHOST_MODE === 'true'
+
 export default function Header() {
-  const { isAuthenticated, isLoading, me } = useAuthStatus()
-  const { signIn, signOut } = useAuthActions()
+  // In self-hosted mode, skip Convex auth
+  const authStatus = isSelfHosted 
+    ? { isAuthenticated: false, isLoading: false, me: null }
+    : useAuthStatus()
+  const { isAuthenticated, isLoading, me } = authStatus
+  const authActions = isSelfHosted 
+    ? { signIn: () => {}, signOut: () => {} }
+    : useAuthActions()
+  const { signIn, signOut } = authActions
   const { mode, setMode } = useThemeMode()
   const toggleRef = useRef<HTMLDivElement | null>(null)
   const siteMode = getSiteMode()

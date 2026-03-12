@@ -7,6 +7,8 @@ import { getPublicSlugCollision } from '../lib/slugCollision'
 import { formatBytes } from '../lib/uploadUtils'
 import { useAuthStatus } from '../lib/useAuthStatus'
 
+const isSelfHosted = !import.meta.env.VITE_CONVEX_URL || import.meta.env.VITE_SELFHOST_MODE === 'true'
+
 export const Route = createFileRoute('/import')({
   component: ImportGitHub,
 })
@@ -42,6 +44,32 @@ type CandidatePreview = {
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 export function ImportGitHub() {
+  // In self-hosted mode, show CLI-only instructions
+  if (isSelfHosted) {
+    return (
+      <main style={{ padding: '40px 20px', maxWidth: 800, margin: '0 auto' }}>
+        <h1>Import from GitHub</h1>
+        <p style={{ fontSize: '1.1rem', marginBottom: 24 }}>
+          GitHub import is not yet available in self-hosted mode. Please use the CLI to publish skills.
+        </p>
+        <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8, fontFamily: 'monospace' }}>
+          <pre style={{ margin: 0 }}>{`# Clone the GitHub repo and publish locally:
+git clone <repo-url>
+cd <repo-directory>
+
+bun clawhub publish . \\
+  --version 1.0.0 \\
+  --changelog "Initial release" \\
+  --site http://localhost:3000 \\
+  --registry http://localhost:3000`}</pre>
+        </div>
+        <p style={{ marginTop: 20 }}>
+          See the <a href="https://github.com/openclaw/clawhub#cli" target="_blank" rel="noreferrer">CLI documentation</a> for more details.
+        </p>
+      </main>
+    )
+  }
+
   const { isAuthenticated, isLoading, me } = useAuthStatus()
   const previewImport = useAction(api.githubImport.previewGitHubImport)
   const previewCandidate = useAction(api.githubImport.previewGitHubImportCandidate)
