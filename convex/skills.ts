@@ -2343,17 +2343,13 @@ export const listPublicPageV2 = query({
       args.paginationOpts,
     )
 
-    const useNonsuspiciousIndex = Boolean(args.nonSuspiciousOnly)
-    const indexMap = useNonsuspiciousIndex ? NONSUSPICIOUS_SORT_INDEXES : SORT_INDEXES
-
+    // NOTE: by_nonsuspicious_* indexes exist but isSuspicious is undefined
+    // (not false) on most digest rows until backfilled. Use regular indexes
+    // with JS filtering for now.
     const runPaginate = (cursor: string | null) => {
       return ctx.db
         .query('skillSearchDigest')
-        .withIndex(indexMap[sort], (q) =>
-          useNonsuspiciousIndex
-            ? q.eq('softDeletedAt', undefined).eq('isSuspicious', false)
-            : q.eq('softDeletedAt', undefined),
-        )
+        .withIndex(SORT_INDEXES[sort], (q) => q.eq('softDeletedAt', undefined))
         .order(dir)
         .paginate({ cursor, numItems })
     }
