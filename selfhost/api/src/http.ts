@@ -100,10 +100,19 @@ export function makeApp(db: Db) {
   const storage = getStorage()
   const app = createApp()
   
-  // CORS middleware for local development
+  // CORS middleware - restrict to specific origins in production
   app.use(defineEventHandler((event) => {
     const origin = getHeader(event, 'origin')
-    if (origin) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+      // Add your production domain here:
+      // 'https://your-domain.com',
+    ]
+    
+    if (origin && allowedOrigins.includes(origin)) {
       setHeader(event, 'Access-Control-Allow-Origin', origin)
       setHeader(event, 'Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
       setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
